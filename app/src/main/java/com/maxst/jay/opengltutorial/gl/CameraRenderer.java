@@ -24,27 +24,8 @@ public class CameraRenderer extends MyRenderer implements SurfaceTexture.OnFrame
     private int[] textureID;
     private SurfaceTexture surfaceTexture;
     private GLSurfaceView surfaceView;
-    private CameraController mCameraController;
     private boolean isRequiredUpdateTexture = false;
-
-
     private int programID;
-
-    private String vertexShader = "attribute vec2 vPosition;\n" +
-            "attribute vec2 vTexCoord;\n" +
-            "varying vec2 texCoord;\n" +
-            "void main() {\n" +
-            "  texCoord = vTexCoord;\n" +
-            "  gl_Position = vec4 ( vPosition.x, vPosition.y, 0.0, 1.0 );\n" +
-            "}";
-    private String fragmentShader =
-            "#extension GL_OES_EGL_image_external : require\n" +
-            "precision mediump float;\n" +
-            "uniform samplerExternalOES sTexture;\n" +
-            "varying vec2 texCoord;\n" +
-            "void main() {\n" +
-            "  gl_FragColor = texture2D(sTexture,texCoord);\n" +
-            "}";
 
     private FloatBuffer vertexBuffer;
     private ShortBuffer indexBuffer;
@@ -66,8 +47,6 @@ public class CameraRenderer extends MyRenderer implements SurfaceTexture.OnFrame
 
     public CameraRenderer(GLSurfaceView view) {
         surfaceView = view;
-
-        mCameraController = new CameraController(surfaceView.getContext());
 
         vertexBuffer = ByteBuffer.allocateDirect(VERTEX_BUF.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         vertexBuffer.put(VERTEX_BUF).position(0);
@@ -92,15 +71,15 @@ public class CameraRenderer extends MyRenderer implements SurfaceTexture.OnFrame
     public void close() {
         isRequiredUpdateTexture = false;
         surfaceTexture.release();
-        mCameraController.closeCamera();
+        CameraController.getInstance().closeCamera();
         deleteTexture();
     }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(1f, 1f, 1f, 1f);
-        initTexutre();
-        mCameraController.openCamera(surfaceTexture, surfaceView.getWidth(), surfaceView.getHeight());
+        initCameraTexutre();
+        CameraController.getInstance().openCamera(surfaceView.getContext(), surfaceTexture, surfaceView.getWidth(), surfaceView.getHeight());
 
         programID = ShaderUtil.createProgram(vertexShader, fragmentShader);
     }
@@ -140,7 +119,7 @@ public class CameraRenderer extends MyRenderer implements SurfaceTexture.OnFrame
         GLES20.glFlush();
     }
 
-    private void initTexutre() {
+    private void initCameraTexutre() {
         textureID = new int[1];
         GLES20.glGenTextures(1, textureID, 0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);

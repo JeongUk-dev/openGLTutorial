@@ -16,19 +16,28 @@ import java.util.List;
  */
 
 public class CameraController {
+    private static volatile CameraController sInstance;
 
     private final String TAG = CameraController.class.getName();
 
-    Camera mCamera;
-    Context mContext;
+    private Camera mCamera = null;
 
-    public CameraController(Context mContext) {
-        this.mContext = mContext;
+    public static CameraController getInstance() {
+        if (sInstance == null) {
+            synchronized (CameraController.class) {
+                if (sInstance == null) {
+                    sInstance = new CameraController();
+                }
+            }
+        }
+        return sInstance;
     }
 
-    public void openCamera(SurfaceTexture surfaceTexture, int width, int height) {
+    public CameraController() {}
+
+    public void openCamera(Context context, SurfaceTexture surfaceTexture, int width, int height) {
         Log.i(TAG, "openCamera");
-        final Activity activity = (Activity) mContext;
+        final Activity activity = (Activity) context;
         if (null == activity || activity.isFinishing()) return;
         try {
             mCamera = android.hardware.Camera.open(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK);
